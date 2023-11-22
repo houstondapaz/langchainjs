@@ -63,7 +63,16 @@ export class RecursiveUrlLoader
     ).map((a) => a.href);
     const absolutePaths = [];
     // eslint-disable-next-line no-script-url
-    const invalidPrefixes = ["javascript:", "mailto:", "#"];
+    const invalidPrefixes = [
+      "javascript:",
+      "mailto:",
+      "#",
+      "about:",
+      "tel:",
+      "data:",
+      "sms:",
+      "fax:",
+    ];
     const invalidSuffixes = [
       ".css",
       ".js",
