@@ -167,21 +167,19 @@ export class RecursiveUrlLoader
   ): Promise<Document[]> {
     if (depth >= this.maxDepth) return [];
 
-    let url = inputUrl;
-    if (!inputUrl.endsWith("/")) url += "/";
 
-    const isExcluded = this.excludeDirs.some((exDir) => url.startsWith(exDir));
+    const isExcluded = this.excludeDirs.some((exDir) => inputUrl.startsWith(exDir));
     if (isExcluded) return [];
 
     let res;
     try {
-      res = await this.fetchWithTimeout(url, { timeout: this.timeout });
+      res = await this.fetchWithTimeout(inputUrl, { timeout: this.timeout });
       res = await res.text();
     } catch (e) {
       return [];
     }
 
-    const childUrls: string[] = this.getChildLinks(res, url);
+    const childUrls: string[] = this.getChildLinks(res, inputUrl);
 
     const results = await Promise.all(
       childUrls.map((childUrl) =>
@@ -197,16 +195,12 @@ export class RecursiveUrlLoader
             return [];
           }
 
-          if (childUrl.endsWith("/")) {
-            const childUrlResponses = await this.getChildUrlsRecursive(
-              childUrl,
-              visited,
-              depth + 1
-            );
-            return [childDoc, ...childUrlResponses];
-          }
-
-          return [childDoc];
+          const childUrlResponses = await this.getChildUrlsRecursive(
+            childUrl,
+            visited,
+            depth + 1
+          );
+          return [childDoc, ...childUrlResponses];
         })()
       )
     );
