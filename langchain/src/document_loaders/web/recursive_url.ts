@@ -144,17 +144,19 @@ export class RecursiveUrlLoader
   }
 
   private async getUrlAsDoc(url: string): Promise<Document | null> {
-    let res;
+    let resText;
+    let urlResponse = url;
     try {
-      res = await this.fetchWithTimeout(url, { timeout: this.timeout });
-      res = await res.text();
+      const res = await this.fetchWithTimeout(url, { timeout: this.timeout });
+      resText = await res.text();
+      urlResponse = res.url;
     } catch (e) {
       return null;
     }
 
     return {
-      pageContent: this.extractor(res),
-      metadata: this.extractMetadata(res, url),
+      pageContent: this.extractor(resText),
+      metadata: this.extractMetadata(urlResponse, url),
     };
   }
 
@@ -189,6 +191,11 @@ export class RecursiveUrlLoader
 
           const childDoc = await this.getUrlAsDoc(childUrl);
           if (!childDoc) return null;
+
+          const finalSource = childDoc.metadata["source"];
+          if (childUrl !== finalSource && visited.has(finalSource)) {
+            return [];
+          }
 
           if (childUrl.endsWith("/")) {
             const childUrlResponses = await this.getChildUrlsRecursive(
